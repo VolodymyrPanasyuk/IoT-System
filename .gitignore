@@ -1,0 +1,15 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+# Rider
+.idea
+
+# Environment
+.env
+#.env.*
+
+# Logs
+*.log

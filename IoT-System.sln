@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoT-System.Api", "IoT-System.Api\IoT-System.Api.csproj", "{A6EEFFF1-1FC0-4E53-9211-9F4785F37336}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoT-System.Application", "IoT-System.Application\IoT-System.Application.csproj", "{4C296ADB-23DB-421F-B6A5-A07634435839}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoT-System.Domain", "IoT-System.Domain\IoT-System.Domain.csproj", "{A93FA015-8A94-4190-9079-363B4134B49C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoT-System.Infrastructure", "IoT-System.Infrastructure\IoT-System.Infrastructure.csproj", "{BA7C3228-A5F6-416A-A850-7D10F004800A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A6EEFFF1-1FC0-4E53-9211-9F4785F37336}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6EEFFF1-1FC0-4E53-9211-9F4785F37336}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6EEFFF1-1FC0-4E53-9211-9F4785F37336}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6EEFFF1-1FC0-4E53-9211-9F4785F37336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C296ADB-23DB-421F-B6A5-A07634435839}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C296ADB-23DB-421F-B6A5-A07634435839}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C296ADB-23DB-421F-B6A5-A07634435839}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C296ADB-23DB-421F-B6A5-A07634435839}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A93FA015-8A94-4190-9079-363B4134B49C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A93FA015-8A94-4190-9079-363B4134B49C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A93FA015-8A94-4190-9079-363B4134B49C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A93FA015-8A94-4190-9079-363B4134B49C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA7C3228-A5F6-416A-A850-7D10F004800A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA7C3228-A5F6-416A-A850-7D10F004800A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA7C3228-A5F6-416A-A850-7D10F004800A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA7C3228-A5F6-416A-A850-7D10F004800A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
