@@ -5,7 +5,7 @@ using IoT_System.Domain.Entities.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace IoT_System.Application.Services;
+namespace IoT_System.Infrastructure.Services;
 
 public class JwtService
 {

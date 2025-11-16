@@ -1,10 +1,12 @@
 using System.Text;
 using DotNetEnv;
+using IoT_System.Application.Interfaces.Repositories;
 using IoT_System.Application.Mappers;
-using IoT_System.Application.Services;
 using IoT_System.Domain.Entities.Auth;
 using IoT_System.Infrastructure.Contexts;
 using IoT_System.Infrastructure.Extensions;
+using IoT_System.Infrastructure.Repositories;
+using IoT_System.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +37,12 @@ builder.Services.AddIdentity<User, Role>(options =>
     })
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders();
+
+// ====== Repositories ======
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 builder.Services.AddScoped<JwtService>();
 
