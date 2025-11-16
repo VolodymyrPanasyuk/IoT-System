@@ -77,6 +77,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// ===== Apply Migrations Automatically =====
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    dbContext.Database.Migrate();
+}
+
 app.UseGlobalExceptionHandler();
 app.UseSwagger();
 app.UseSwaggerUI();

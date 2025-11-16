@@ -27,4 +27,8 @@
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Migrations\Auth\" />
+    </ItemGroup>
+
 </Project>
