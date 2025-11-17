@@ -1,3 +1,4 @@
+using static IoT_System.Application.Common.Helpers.ExecutionHelper;
 using IoT_System.Application.Interfaces.Repositories;
 using IoT_System.Application.Models;
 using IoT_System.Infrastructure.Contexts;
@@ -54,6 +55,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
         => ExecuteAsync(async () =>
         {
             await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
             return entity;
         });
 
@@ -66,6 +68,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
         => ExecuteAsync(async () =>
         {
             await _dbSet.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
             return entities;
         });
 
@@ -75,9 +78,10 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// <param name="entity">The entity to update.</param>
     /// <returns>OperationResult containing the updated entity.</returns>
     public Task<OperationResult<TEntity>> UpdateAsync(TEntity entity)
-        => ExecuteAsync(() =>
+        => ExecuteAsync(async () =>
         {
             _dbSet.Update(entity);
+            await _context.SaveChangesAsync();
             return entity;
         });
 
@@ -87,9 +91,10 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// <param name="entities">The collection of entities to update.</param>
     /// <returns>OperationResult containing the updated entities.</returns>
     public Task<OperationResult<IEnumerable<TEntity>>> UpdateRangeAsync(IEnumerable<TEntity> entities)
-        => ExecuteAsync(() =>
+        => ExecuteAsync(async () =>
         {
             _dbSet.UpdateRange(entities);
+            await _context.SaveChangesAsync();
             return entities;
         });
 
@@ -98,11 +103,11 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entity">The entity to delete.</param>
     /// <returns>OperationResult containing the deleted entity.</returns>
-    public Task<OperationResult<TEntity>> DeleteAsync(TEntity entity)
-        => ExecuteAsync(() =>
+    public Task<OperationResult> DeleteAsync(TEntity entity)
+        => ExecuteAsync(async () =>
         {
             _dbSet.Remove(entity);
-            return entity;
+            await _context.SaveChangesAsync();
         });
 
     /// <summary>
@@ -110,64 +115,10 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entities">The collection of entities to delete.</param>
     /// <returns>OperationResult containing the deleted entities.</returns>
-    public Task<OperationResult<IEnumerable<TEntity>>> DeleteRangeAsync(IEnumerable<TEntity> entities)
-        => ExecuteAsync(() =>
+    public Task<OperationResult> DeleteRangeAsync(IEnumerable<TEntity> entities)
+        => ExecuteAsync(async () =>
         {
             _dbSet.RemoveRange(entities);
-            return entities;
+            await _context.SaveChangesAsync();
         });
-
-    #region Protected Methods
-
-    /// <summary>
-    /// Saves all pending changes to the database.
-    /// </summary>
-    /// <returns>True if any changes were saved; otherwise, false.</returns>
-    protected async Task<bool> SaveChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
-    }
-
-    /// <summary>
-    /// Executes an operation that modifies the database and saves changes.
-    /// Supports both synchronous and asynchronous operations through overloading.
-    /// </summary>
-    /// <typeparam name="TResult">The type of data returned by the operation.</typeparam>
-    /// <param name="operation">The operation to execute that returns the result data.</param>
-    /// <returns>OperationResult indicating success or failure with the data or exception.</returns>
-    protected async Task<OperationResult<TResult>> ExecuteAsync<TResult>(Func<Task<TResult>> operation)
-    {
-        try
-        {
-            var data = await operation();
-            var isSuccess = await SaveChangesAsync();
-            return OperationResult<TResult>.Result(isSuccess, data);
-        }
-        catch (Exception ex)
-        {
-            return OperationResult<TResult>.Failure(ex);
-        }
-    }
-
-    /// <summary>
-    /// Executes a synchronous operation that modifies the database and saves changes.
-    /// </summary>
-    /// <typeparam name="TResult">The type of data returned by the operation.</typeparam>
-    /// <param name="operation">The synchronous operation to execute that returns the result data.</param>
-    /// <returns>OperationResult indicating success or failure with the data or exception.</returns>
-    protected async Task<OperationResult<TResult>> ExecuteAsync<TResult>(Func<TResult> operation)
-    {
-        try
-        {
-            var data = operation();
-            var isSuccess = await SaveChangesAsync();
-            return OperationResult<TResult>.Result(isSuccess, data);
-        }
-        catch (Exception ex)
-        {
-            return OperationResult<TResult>.Failure(ex);
-        }
-    }
-
-    #endregion
 }

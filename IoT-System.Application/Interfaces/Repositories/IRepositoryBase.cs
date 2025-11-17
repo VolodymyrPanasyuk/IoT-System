@@ -61,12 +61,12 @@ public interface IRepositoryBase<TEntity> where TEntity : class
     /// </summary>
     /// <param name="entity">The entity to delete.</param>
     /// <returns>An OperationResult containing the deleted entity.</returns>
-    Task<OperationResult<TEntity>> DeleteAsync(TEntity entity);
+    Task<OperationResult> DeleteAsync(TEntity entity);
 
     /// <summary>
     /// Deletes multiple entities from the database in a single operation and persists changes.
     /// </summary>
     /// <param name="entities">The collection of entities to delete.</param>
     /// <returns>An OperationResult containing the deleted entities.</returns>
-    Task<OperationResult<IEnumerable<TEntity>>> DeleteRangeAsync(IEnumerable<TEntity> entities);
+    Task<OperationResult> DeleteRangeAsync(IEnumerable<TEntity> entities);
 }
