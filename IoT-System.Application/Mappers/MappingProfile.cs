@@ -1,4 +1,5 @@
 using AutoMapper;
+using IoT_System.Application.DTOs.Request;
 using IoT_System.Application.DTOs.Response.Auth;
 using IoT_System.Application.DTOs.Response.Groups;
 using IoT_System.Application.DTOs.Response.Roles;
@@ -24,6 +25,8 @@ public class MappingProfile : Profile
             ));
 
         CreateMap<User, UserShortResponse>();
+        CreateMap<CreateUserRequest, User>();
+        CreateMap<UpdateUserRequest, User>();
 
         // ====== ROLES ======
         CreateMap<Role, RoleResponse>()
@@ -38,6 +41,8 @@ public class MappingProfile : Profile
             ));
 
         CreateMap<Role, RoleShortResponse>();
+        CreateMap<CreateRoleRequest, Role>();
+        CreateMap<UpdateRoleRequest, Role>();
 
         // ====== GROUPS ======
         CreateMap<Group, GroupResponse>()
@@ -49,6 +54,8 @@ public class MappingProfile : Profile
             ));
 
         CreateMap<Group, GroupShortResponse>();
+        CreateMap<CreateGroupRequest, Group>();
+        CreateMap<UpdateGroupRequest, Group>();
 
         // ====== AUTH SESSION ======
         CreateMap<User, UserSessionResponse>()
