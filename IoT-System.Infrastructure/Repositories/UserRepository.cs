@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IoT_System.Infrastructure.Repositories;
 
-public class UserRepository(AuthDbContext context) : RepositoryBase<User>(context), IUserRepository
+public class UserRepository(AuthDbContext context) : RepositoryBase<User, AuthDbContext>(context), IUserRepository
 {
     public Task<OperationResult<User?>> GetByUsernameAsync(string username)
     {

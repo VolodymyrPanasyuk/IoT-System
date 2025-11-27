@@ -9,6 +9,6 @@ public interface IGroupService
     Task<OperationResult<GroupResponse>> CreateGroupAsync(CreateGroupRequest request);
     Task<OperationResult<GroupResponse>> UpdateGroupAsync(UpdateGroupRequest request);
     Task<OperationResult> DeleteGroupAsync(Guid id);
-    Task<OperationResult<GroupResponse>> GetByIdAsync(Guid id);
-    Task<OperationResult<IEnumerable<GroupResponse>>> GetAllAsync();
+    Task<OperationResult<GroupResponse>> GetByIdAsync(Guid id, bool includeUsersAndRoles = false);
+    Task<OperationResult<IEnumerable<GroupResponse>>> GetAllAsync(bool includeUsersAndRoles = false);
 }

@@ -9,7 +9,7 @@ public interface IRoleService
     Task<OperationResult<RoleResponse>> CreateRoleAsync(CreateRoleRequest request);
     Task<OperationResult<RoleResponse>> UpdateRoleAsync(UpdateRoleRequest request);
     Task<OperationResult> DeleteRoleAsync(Guid id);
-    Task<OperationResult<RoleResponse>> GetByIdAsync(Guid id);
-    Task<OperationResult<RoleResponse>> GetByNameAsync(string name);
-    Task<OperationResult<IEnumerable<RoleResponse>>> GetAllAsync();
+    Task<OperationResult<RoleResponse>> GetByIdAsync(Guid id, bool includeUsersAndGroups = false);
+    Task<OperationResult<RoleResponse>> GetByNameAsync(string name, bool includeUsersAndGroups = false);
+    Task<OperationResult<IEnumerable<RoleResponse>>> GetAllAsync(bool includeUsersAndGroups = false);
 }

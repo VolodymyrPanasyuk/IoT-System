@@ -6,7 +6,7 @@ namespace IoT_System.Application.Interfaces.Services;
 
 public interface IAuthService
 {
-    Task<OperationResult<AuthResponse>> LoginAsync(LoginRequest request);
-    Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request);
-    Task<OperationResult<AuthResponse>> RefreshTokenAsync(string refreshToken);
+    Task<OperationResult<(AuthResponse response, string refreshToken)>> LoginAsync(LoginRequest request);
+    Task<OperationResult<(AuthResponse response, string refreshToken)>> RegisterAsync(RegisterRequest request);
+    Task<OperationResult<(AuthResponse response, string refreshToken)>> RefreshTokenAsync(string refreshToken);
 }

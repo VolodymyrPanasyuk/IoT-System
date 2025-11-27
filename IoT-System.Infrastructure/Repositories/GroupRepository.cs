@@ -4,4 +4,4 @@ using IoT_System.Infrastructure.Contexts;
 
 namespace IoT_System.Infrastructure.Repositories;
 
-public class GroupRepository(AuthDbContext context) : RepositoryBase<Group>(context), IGroupRepository;
+public class GroupRepository(AuthDbContext context) : RepositoryBase<Group, AuthDbContext>(context), IGroupRepository;

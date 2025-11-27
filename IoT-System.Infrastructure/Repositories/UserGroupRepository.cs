@@ -7,10 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IoT_System.Infrastructure.Repositories;
 
-public class RoleRepository(AuthDbContext context) : RepositoryBase<Role, AuthDbContext>(context), IRoleRepository
+public class UserGroupRepository(AuthDbContext context) : RepositoryBase<UserGroup, AuthDbContext>(context), IUserGroupRepository
 {
-    public Task<OperationResult<Role?>> GetByNameAsync(string roleName)
-    {
-        return ExecuteAsync(() => _dbSet.FirstOrDefaultAsync(r => r.Name == roleName));
-    }
+    public override Task<OperationResult<UserGroup?>> GetByIdAsync(Guid id)
+        => ExecuteAsync(async () => await _dbSet.FirstOrDefaultAsync(ug => ug.UserId == id || ug.GroupId == id));
 }

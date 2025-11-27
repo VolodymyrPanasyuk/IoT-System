@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IoT_System.Infrastructure.Migrations.Auth
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20251116191017_Initial")]
+    [Migration("20251127184549_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -194,6 +194,21 @@ namespace IoT_System.Infrastructure.Migrations.Auth
                     b.ToTable("UserGroups", "IoT.Identity");
                 });
 
+            modelBuilder.Entity("IoT_System.Domain.Entities.Auth.UserRole", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("UserRoles", "IoT.Identity");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
@@ -261,21 +276,6 @@ namespace IoT_System.Infrastructure.Migrations.Auth
                     b.HasIndex("UserId");
 
                     b.ToTable("UserLogins", "IoT.Identity");
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("UserRoles", "IoT.Identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -346,6 +346,25 @@ namespace IoT_System.Infrastructure.Migrations.Auth
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("IoT_System.Domain.Entities.Auth.UserRole", b =>
+                {
+                    b.HasOne("IoT_System.Domain.Entities.Auth.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IoT_System.Domain.Entities.Auth.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("IoT_System.Domain.Entities.Auth.Role", null)
@@ -373,21 +392,6 @@ namespace IoT_System.Infrastructure.Migrations.Auth
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.HasOne("IoT_System.Domain.Entities.Auth.Role", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IoT_System.Domain.Entities.Auth.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.HasOne("IoT_System.Domain.Entities.Auth.User", null)
@@ -407,11 +411,15 @@ namespace IoT_System.Infrastructure.Migrations.Auth
             modelBuilder.Entity("IoT_System.Domain.Entities.Auth.Role", b =>
                 {
                     b.Navigation("GroupRoles");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("IoT_System.Domain.Entities.Auth.User", b =>
                 {
                     b.Navigation("UserGroups");
+
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

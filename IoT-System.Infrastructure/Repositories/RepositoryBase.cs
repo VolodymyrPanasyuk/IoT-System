@@ -1,25 +1,29 @@
 using static IoT_System.Application.Common.Helpers.ExecutionHelper;
 using IoT_System.Application.Interfaces.Repositories;
 using IoT_System.Application.Models;
-using IoT_System.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 
 namespace IoT_System.Infrastructure.Repositories;
 
 /// <summary>
 /// Base repository implementation providing common CRUD operations with OperationResult wrapping.
+/// Generic over both entity type and database context for maximum flexibility and type safety.
+/// All derived repositories must specify their concrete DbContext type.
 /// </summary>
 /// <typeparam name="TEntity">The entity type this repository manages.</typeparam>
-public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : class
+/// <typeparam name="TDbContext">The database context type (must inherit from DbContext).</typeparam>
+public abstract class RepositoryBase<TEntity, TDbContext> : IRepositoryBase<TEntity>
+    where TEntity : class
+    where TDbContext : DbContext
 {
-    protected readonly AuthDbContext _context;
+    protected readonly TDbContext _context;
     protected readonly DbSet<TEntity> _dbSet;
 
     /// <summary>
-    /// Initializes a new instance of the repository.
+    /// Initializes a new instance of the repository with the specified database context.
     /// </summary>
-    /// <param name="context">The database context.</param>
-    public RepositoryBase(AuthDbContext context)
+    /// <param name="context">The database context instance used for data access.</param>
+    protected RepositoryBase(TDbContext context)
     {
         _context = context;
         _dbSet = _context.Set<TEntity>();
@@ -29,21 +33,21 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// Returns an IQueryable for building custom queries.
     /// </summary>
     /// <returns>IQueryable of TEntity.</returns>
-    public IQueryable<TEntity> AsQueryable() => _dbSet.AsQueryable();
+    public virtual IQueryable<TEntity> AsQueryable() => _dbSet;
 
     /// <summary>
     /// Retrieves an entity by its identifier.
     /// </summary>
     /// <param name="id">The unique identifier.</param>
     /// <returns>OperationResult containing the entity or null if not found.</returns>
-    public Task<OperationResult<TEntity?>> GetByIdAsync(Guid id)
+    public virtual Task<OperationResult<TEntity?>> GetByIdAsync(Guid id)
         => ExecuteAsync(async () => await _dbSet.FindAsync(id));
 
     /// <summary>
     /// Retrieves all entities from the database.
     /// </summary>
     /// <returns>OperationResult containing the collection of all entities.</returns>
-    public Task<OperationResult<IEnumerable<TEntity>>> GetAllAsync()
+    public virtual Task<OperationResult<IEnumerable<TEntity>>> GetAllAsync()
         => ExecuteAsync<IEnumerable<TEntity>>(async () => await _dbSet.ToListAsync());
 
     /// <summary>
@@ -51,7 +55,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entity">The entity to add.</param>
     /// <returns>OperationResult containing the added entity.</returns>
-    public Task<OperationResult<TEntity>> AddAsync(TEntity entity)
+    public virtual Task<OperationResult<TEntity>> AddAsync(TEntity entity)
         => ExecuteAsync(async () =>
         {
             await _dbSet.AddAsync(entity);
@@ -64,7 +68,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entities">The collection of entities to add.</param>
     /// <returns>OperationResult containing the added entities.</returns>
-    public Task<OperationResult<IEnumerable<TEntity>>> AddRangeAsync(IEnumerable<TEntity> entities)
+    public virtual Task<OperationResult<IEnumerable<TEntity>>> AddRangeAsync(IEnumerable<TEntity> entities)
         => ExecuteAsync(async () =>
         {
             await _dbSet.AddRangeAsync(entities);
@@ -77,7 +81,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entity">The entity to update.</param>
     /// <returns>OperationResult containing the updated entity.</returns>
-    public Task<OperationResult<TEntity>> UpdateAsync(TEntity entity)
+    public virtual Task<OperationResult<TEntity>> UpdateAsync(TEntity entity)
         => ExecuteAsync(async () =>
         {
             _dbSet.Update(entity);
@@ -90,7 +94,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entities">The collection of entities to update.</param>
     /// <returns>OperationResult containing the updated entities.</returns>
-    public Task<OperationResult<IEnumerable<TEntity>>> UpdateRangeAsync(IEnumerable<TEntity> entities)
+    public virtual Task<OperationResult<IEnumerable<TEntity>>> UpdateRangeAsync(IEnumerable<TEntity> entities)
         => ExecuteAsync(async () =>
         {
             _dbSet.UpdateRange(entities);
@@ -103,7 +107,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entity">The entity to delete.</param>
     /// <returns>OperationResult containing the deleted entity.</returns>
-    public Task<OperationResult> DeleteAsync(TEntity entity)
+    public virtual Task<OperationResult> DeleteAsync(TEntity entity)
         => ExecuteAsync(async () =>
         {
             _dbSet.Remove(entity);
@@ -115,7 +119,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     /// </summary>
     /// <param name="entities">The collection of entities to delete.</param>
     /// <returns>OperationResult containing the deleted entities.</returns>
-    public Task<OperationResult> DeleteRangeAsync(IEnumerable<TEntity> entities)
+    public virtual Task<OperationResult> DeleteRangeAsync(IEnumerable<TEntity> entities)
         => ExecuteAsync(async () =>
         {
             _dbSet.RemoveRange(entities);

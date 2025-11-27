@@ -5,4 +5,5 @@ namespace IoT_System.Domain.Entities.Auth;
 public class Role : IdentityRole<Guid>
 {
     public ICollection<GroupRole> GroupRoles { get; set; } = new List<GroupRole>();
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

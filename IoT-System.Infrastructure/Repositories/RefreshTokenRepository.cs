@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IoT_System.Infrastructure.Repositories;
 
-public class RefreshTokenRepository(AuthDbContext context) : RepositoryBase<RefreshToken>(context), IRefreshTokenRepository
+public class RefreshTokenRepository(AuthDbContext context) : RepositoryBase<RefreshToken, AuthDbContext>(context), IRefreshTokenRepository
 {
     public Task<OperationResult<RefreshToken?>> GetByTokenAsync(string token)
     {

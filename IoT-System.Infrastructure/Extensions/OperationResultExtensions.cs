@@ -6,20 +6,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace IoT_System.Infrastructure.Extensions;
 
 /// <summary>
-/// Extension methods for converting OperationResult to ASP.NET Core IActionResult.
-/// Provides seamless integration between service layer results and API responses.
+/// Extension methods for converting OperationResult to ASP.NET Core action results.
+/// Supports IActionResult, ActionResult, and ActionResult&lt;T&gt;.
 /// </summary>
 public static class OperationResultExtensions
 {
-    #region ToActionResult - Non-Generic OperationResult
+    #region OperationResult (non-generic) → IActionResult
 
     /// <summary>
-    /// Converts a non-generic OperationResult to an IActionResult.
-    /// Maps status codes and errors appropriately.
+    /// Converts OperationResult to IActionResult.
     /// </summary>
-    /// <param name="result">The operation result to convert.</param>
-    /// <returns>An IActionResult with appropriate status code and error information.</returns>
-    public static IActionResult ToActionResult(this OperationResult result)
+    public static IActionResult ToResult(this OperationResult result)
     {
         if (result.IsSuccess)
         {
@@ -37,14 +34,9 @@ public static class OperationResultExtensions
     }
 
     /// <summary>
-    /// Converts a non-generic OperationResult to an IActionResult with a custom success response object.
-    /// Useful when you want to return data on success even though the OperationResult doesn't contain data.
+    /// Converts OperationResult to IActionResult with custom success data.
     /// </summary>
-    /// <typeparam name="T">The type of data to return on success.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <param name="successData">The data to return if the operation was successful.</param>
-    /// <returns>An IActionResult with appropriate status code and data or error information.</returns>
-    public static IActionResult ToActionResult<T>(this OperationResult result, T successData)
+    public static IActionResult ToResult<T>(this OperationResult result, T successData)
     {
         if (result.IsSuccess)
         {
@@ -62,14 +54,9 @@ public static class OperationResultExtensions
     }
 
     /// <summary>
-    /// Converts a non-generic OperationResult to an IActionResult with a custom success response factory.
-    /// The factory is only invoked if the operation was successful.
+    /// Converts OperationResult to IActionResult with a factory function.
     /// </summary>
-    /// <typeparam name="T">The type of data to return on success.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <param name="successDataFactory">A factory function to create the success response data.</param>
-    /// <returns>An IActionResult with appropriate status code and data or error information.</returns>
-    public static IActionResult ToActionResult<T>(this OperationResult result, Func<T> successDataFactory)
+    public static IActionResult ToResult<T>(this OperationResult result, Func<T> successDataFactory)
     {
         if (!result.IsSuccess)
         {
@@ -89,130 +76,12 @@ public static class OperationResultExtensions
 
     #endregion
 
-    #region ToActionResult - Generic OperationResult<T>
+    #region OperationResult<T> → ActionResult<T>
 
     /// <summary>
-    /// Converts a generic OperationResult&lt;T&gt; to an IActionResult.
-    /// Maps status codes, data, and errors appropriately.
+    /// Converts OperationResult&lt;T&gt; to ActionResult&lt;T&gt; with automatic type inference.
     /// </summary>
-    /// <typeparam name="T">The type of data in the operation result.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <returns>An IActionResult with appropriate status code and data or error information.</returns>
-    public static IActionResult ToActionResult<T>(this OperationResult<T> result)
-    {
-        if (result.IsSuccess)
-        {
-            // Handle NoContent status code specially - don't return data
-            if (result.StatusCode == HttpStatusCode.NoContent)
-            {
-                return new NoContentResult();
-            }
-
-            return result.StatusCode switch
-            {
-                HttpStatusCode.OK => new OkObjectResult(result.Data),
-                HttpStatusCode.Created => new CreatedResult(string.Empty, result.Data),
-                HttpStatusCode.Accepted => new AcceptedResult(string.Empty, result.Data),
-                _ => new ObjectResult(result.Data) { StatusCode = (int)result.StatusCode }
-            };
-        }
-
-        return CreateErrorResult(result.StatusCode, result.Errors, result.Exception);
-    }
-
-    /// <summary>
-    /// Converts a generic OperationResult&lt;T&gt; to an IActionResult with data transformation.
-    /// Useful for mapping domain models to DTOs before returning.
-    /// </summary>
-    /// <typeparam name="TSource">The type of data in the operation result.</typeparam>
-    /// <typeparam name="TDestination">The type of data to return in the response.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <param name="mapper">Function to transform the source data to destination data.</param>
-    /// <returns>An IActionResult with transformed data or error information.</returns>
-    public static IActionResult ToActionResult<TSource, TDestination>(
-        this OperationResult<TSource> result,
-        Func<TSource?, TDestination> mapper)
-    {
-        if (result.IsSuccess)
-        {
-            var mappedData = mapper(result.Data);
-
-            // Handle NoContent status code specially
-            if (result.StatusCode == HttpStatusCode.NoContent)
-            {
-                return new NoContentResult();
-            }
-
-            return result.StatusCode switch
-            {
-                HttpStatusCode.OK => new OkObjectResult(mappedData),
-                HttpStatusCode.Created => new CreatedResult(string.Empty, mappedData),
-                HttpStatusCode.Accepted => new AcceptedResult(string.Empty, mappedData),
-                _ => new ObjectResult(mappedData) { StatusCode = (int)result.StatusCode }
-            };
-        }
-
-        return CreateErrorResult(result.StatusCode, result.Errors, result.Exception);
-    }
-
-    #endregion
-
-    #region ToCreatedActionResult - Special handling for Created responses
-
-    /// <summary>
-    /// Converts an OperationResult to a CreatedAtAction result.
-    /// </summary>
-    /// <typeparam name="T">The type of data in the operation result.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <param name="actionName">The name of the action to link to.</param>
-    /// <param name="routeValues">Route values for generating the URI.</param>
-    /// <returns>A CreatedAtActionResult on success, or error result on failure.</returns>
-    public static IActionResult ToCreatedAtActionResult<T>(
-        this OperationResult<T> result,
-        string actionName,
-        object? routeValues = null)
-    {
-        if (result.IsSuccess)
-        {
-            return new CreatedAtActionResult(actionName, null, routeValues, result.Data);
-        }
-
-        return CreateErrorResult(result.StatusCode, result.Errors, result.Exception);
-    }
-
-    /// <summary>
-    /// Converts an OperationResult to a CreatedAtRoute result.
-    /// </summary>
-    /// <typeparam name="T">The type of data in the operation result.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <param name="routeName">The name of the route to link to.</param>
-    /// <param name="routeValues">Route values for generating the URI.</param>
-    /// <returns>A CreatedAtRouteResult on success, or error result on failure.</returns>
-    public static IActionResult ToCreatedAtRouteResult<T>(
-        this OperationResult<T> result,
-        string routeName,
-        object? routeValues = null)
-    {
-        if (result.IsSuccess)
-        {
-            return new CreatedAtRouteResult(routeName, routeValues, result.Data);
-        }
-
-        return CreateErrorResult(result.StatusCode, result.Errors, result.Exception);
-    }
-
-    #endregion
-
-    #region ToActionResult with ActionResult<T>
-
-    /// <summary>
-    /// Converts a generic OperationResult&lt;T&gt; to an ActionResult&lt;T&gt;.
-    /// This is useful for strongly-typed controller actions.
-    /// </summary>
-    /// <typeparam name="T">The type of data in the operation result.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <returns>An ActionResult&lt;T&gt; with appropriate status code and data or error information.</returns>
-    public static ActionResult<T> ToActionResultOfT<T>(this OperationResult<T> result)
+    public static ActionResult<T> ToResult<T>(this OperationResult<T> result)
     {
         if (result.IsSuccess)
         {
@@ -234,14 +103,9 @@ public static class OperationResultExtensions
     }
 
     /// <summary>
-    /// Converts a generic OperationResult&lt;T&gt; to an ActionResult&lt;TDestination&gt; with data transformation.
+    /// Converts OperationResult&lt;TSource&gt; to ActionResult&lt;TDestination&gt; with data transformation.
     /// </summary>
-    /// <typeparam name="TSource">The type of data in the operation result.</typeparam>
-    /// <typeparam name="TDestination">The type of data to return in the response.</typeparam>
-    /// <param name="result">The operation result to convert.</param>
-    /// <param name="mapper">Function to transform the source data to destination data.</param>
-    /// <returns>An ActionResult&lt;TDestination&gt; with transformed data or error information.</returns>
-    public static ActionResult<TDestination> ToActionResultOfT<TSource, TDestination>(
+    public static ActionResult<TDestination> ToResult<TSource, TDestination>(
         this OperationResult<TSource> result,
         Func<TSource?, TDestination> mapper)
     {
@@ -268,11 +132,37 @@ public static class OperationResultExtensions
 
     #endregion
 
-    #region Helper Methods
+    #region OperationResult<T> → IActionResult
 
     /// <summary>
-    /// Creates an appropriate error result based on the status code and error information.
+    /// Converts OperationResult&lt;T&gt; to IActionResult (non-generic).
+    /// Use this when controller method returns IActionResult.
     /// </summary>
+    public static IActionResult ToResultUntyped<T>(this OperationResult<T> result)
+    {
+        if (result.IsSuccess)
+        {
+            if (result.StatusCode == HttpStatusCode.NoContent)
+            {
+                return new NoContentResult();
+            }
+
+            return result.StatusCode switch
+            {
+                HttpStatusCode.OK => new OkObjectResult(result.Data),
+                HttpStatusCode.Created => new CreatedResult(string.Empty, result.Data),
+                HttpStatusCode.Accepted => new AcceptedResult(string.Empty, result.Data),
+                _ => new ObjectResult(result.Data) { StatusCode = (int)result.StatusCode }
+            };
+        }
+
+        return CreateErrorResult(result.StatusCode, result.Errors, result.Exception);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
     private static IActionResult CreateErrorResult(
         HttpStatusCode statusCode,
         IEnumerable<string> errors,
@@ -307,9 +197,6 @@ public static class OperationResultExtensions
         };
     }
 
-    /// <summary>
-    /// Gets a user-friendly error message based on the status code.
-    /// </summary>
     private static string GetErrorMessageByStatusCode(HttpStatusCode statusCode)
     {
         return statusCode switch
@@ -331,32 +218,12 @@ public static class OperationResultExtensions
 
 /// <summary>
 /// Standard error response model for API errors.
-/// Provides consistent error structure across all API endpoints.
 /// </summary>
 public class ErrorResponse
 {
-    /// <summary>
-    /// HTTP status code.
-    /// </summary>
     public int StatusCode { get; set; }
-
-    /// <summary>
-    /// User-friendly error message.
-    /// </summary>
     public string Message { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Collection of specific error messages or validation errors.
-    /// </summary>
     public List<string> Errors { get; set; } = [];
-
-    /// <summary>
-    /// Timestamp when the error occurred (UTC).
-    /// </summary>
     public DateTime Timestamp { get; set; }
-
-    /// <summary>
-    /// Indicates whether there are any errors.
-    /// </summary>
     public bool HasErrors => Errors.Any();
 }

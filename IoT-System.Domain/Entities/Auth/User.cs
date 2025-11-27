@@ -8,4 +8,5 @@ public class User : IdentityUser<Guid>
     public string LastName { get; set; }
 
     public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

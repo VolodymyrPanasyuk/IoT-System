@@ -14,8 +14,8 @@ public record UpdateUserRequest(
     string Password,
     string FirstName,
     string LastName,
-    List<Guid>? RoleToAssign = null,
-    List<Guid>? RoleToRemove = null,
+    List<Guid>? RolesToAssign = null,
+    List<Guid>? RolesToRemove = null,
     List<Guid>? GroupsToAssign = null,
     List<Guid>? GroupsToRemove = null
 ) : BaseUserDto(UserName, Password, FirstName, LastName);
