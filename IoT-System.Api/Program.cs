@@ -51,13 +51,14 @@ builder.Services.AddScoped<IUserGroupRepository, UserGroupRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 
-
 // ====== SERVICES ======
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IAccessValidationService, AccessValidationService>();
 
 // ====== JWT AUTHENTICATION ======
 builder.Services.AddAuthentication(options =>
@@ -84,7 +85,6 @@ builder.Services.AddAuthentication(options =>
 
 // ====== CORS ======
 var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(';', StringSplitOptions.RemoveEmptyEntries) ?? [];
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCorsPolicy", policy =>
@@ -168,7 +168,11 @@ app.UseSwaggerUI(options =>
     }
 });
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseRouting();
 app.UseCors("DefaultCorsPolicy");
 app.UseAuthentication();

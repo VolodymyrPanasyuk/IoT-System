@@ -1,6 +1,5 @@
 namespace IoT_System.Application.DTOs.Response.Groups;
 
-public class GroupShortResponse : BaseEntityResponse
+public class GroupShortResponse : BaseNamedEntityResponse
 {
-    public string Name { get; set; } = null!;
 }

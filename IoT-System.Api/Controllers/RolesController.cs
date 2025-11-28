@@ -14,10 +14,12 @@ namespace IoT_System.Api.Controllers;
 public class RolesController : ControllerBase
 {
     private readonly IRoleService _roleService;
+    private readonly IAccessValidationService _accessValidationService;
 
-    public RolesController(IRoleService roleService)
+    public RolesController(IRoleService roleService, IAccessValidationService accessValidationService)
     {
         _roleService = roleService;
+        _accessValidationService = accessValidationService;
     }
 
     [HttpGet]
@@ -51,6 +53,9 @@ public class RolesController : ControllerBase
     [HttpPut]
     public async Task<ActionResult<RoleResponse>> Update([FromBody] UpdateRoleRequest request)
     {
+        var validationResult = await _accessValidationService.ValidateRolesAccessAsync([request.Id]);
+        if (!validationResult.IsSuccess) return validationResult.ToResult();
+
         var result = await _roleService.UpdateRoleAsync(request);
         return result.ToResult();
     }
@@ -58,6 +63,9 @@ public class RolesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
+        var validationResult = await _accessValidationService.ValidateRolesAccessAsync([id]);
+        if (!validationResult.IsSuccess) return validationResult.ToResult();
+
         var result = await _roleService.DeleteRoleAsync(id);
         return result.ToResult();
     }

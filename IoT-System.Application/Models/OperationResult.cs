@@ -733,6 +733,27 @@ public class OperationResult<T> : OperationResult
 
     #endregion
 
+    #region Implicit Operators
+
+    /// <summary>
+    /// Implicitly converts data of type T to a successful OperationResult with 200 OK status.
+    /// Allows you to return data directly from methods without wrapping it in OperationResult.Success().
+    /// </summary>
+    /// <param name="data">The data to wrap in a successful OperationResult.</param>
+    public static implicit operator OperationResult<T>(T? data)
+        => Success(data);
+
+    /// <summary>
+    /// Implicitly converts OperationResult&lt;T&gt; to T by extracting the Data property.
+    /// Useful when you need to get the underlying data value directly.
+    /// Warning: Returns null if the operation failed or data is null.
+    /// </summary>
+    /// <param name="result">The OperationResult to extract data from.</param>
+    public static implicit operator T?(OperationResult<T> result)
+        => result.Data;
+
+    #endregion
+
     #region Static Factory Methods - Basic
 
     /// <summary>

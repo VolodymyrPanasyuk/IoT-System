@@ -11,12 +11,12 @@ namespace IoT_System.Infrastructure.Extensions;
 /// </summary>
 public static class OperationResultExtensions
 {
-    #region OperationResult (non-generic) → IActionResult
+    #region OperationResult (non-generic) → ActionResult
 
     /// <summary>
-    /// Converts OperationResult to IActionResult.
+    /// Converts OperationResult to ActionResult.
     /// </summary>
-    public static IActionResult ToResult(this OperationResult result)
+    public static ActionResult ToResult(this OperationResult result)
     {
         if (result.IsSuccess)
         {
@@ -34,9 +34,9 @@ public static class OperationResultExtensions
     }
 
     /// <summary>
-    /// Converts OperationResult to IActionResult with custom success data.
+    /// Converts OperationResult to ActionResult with custom success data.
     /// </summary>
-    public static IActionResult ToResult<T>(this OperationResult result, T successData)
+    public static ActionResult ToResult<T>(this OperationResult result, T successData)
     {
         if (result.IsSuccess)
         {
@@ -54,9 +54,9 @@ public static class OperationResultExtensions
     }
 
     /// <summary>
-    /// Converts OperationResult to IActionResult with a factory function.
+    /// Converts OperationResult to ActionResult with a factory function.
     /// </summary>
-    public static IActionResult ToResult<T>(this OperationResult result, Func<T> successDataFactory)
+    public static ActionResult ToResult<T>(this OperationResult result, Func<T> successDataFactory)
     {
         if (!result.IsSuccess)
         {
@@ -99,7 +99,7 @@ public static class OperationResultExtensions
             };
         }
 
-        return new ActionResult<T>((ActionResult)CreateErrorResult(result.StatusCode, result.Errors, result.Exception));
+        return new ActionResult<T>(CreateErrorResult(result.StatusCode, result.Errors, result.Exception));
     }
 
     /// <summary>
@@ -127,18 +127,18 @@ public static class OperationResultExtensions
             };
         }
 
-        return new ActionResult<TDestination>((ActionResult)CreateErrorResult(result.StatusCode, result.Errors, result.Exception));
+        return new ActionResult<TDestination>(CreateErrorResult(result.StatusCode, result.Errors, result.Exception));
     }
 
     #endregion
 
-    #region OperationResult<T> → IActionResult
+    #region OperationResult<T> → ActionResult
 
     /// <summary>
-    /// Converts OperationResult&lt;T&gt; to IActionResult (non-generic).
-    /// Use this when controller method returns IActionResult.
+    /// Converts OperationResult&lt;T&gt; to ActionResult (non-generic).
+    /// Use this when controller method returns ActionResult.
     /// </summary>
-    public static IActionResult ToResultUntyped<T>(this OperationResult<T> result)
+    public static ActionResult ToResultUntyped<T>(this OperationResult<T> result)
     {
         if (result.IsSuccess)
         {
@@ -163,7 +163,7 @@ public static class OperationResultExtensions
 
     #region Helper Methods
 
-    private static IActionResult CreateErrorResult(
+    private static ActionResult CreateErrorResult(
         HttpStatusCode statusCode,
         IEnumerable<string> errors,
         Exception? exception)

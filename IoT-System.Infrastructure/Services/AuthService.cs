@@ -1,3 +1,4 @@
+using IoT_System.Application.Common;
 using IoT_System.Application.DTOs.Request;
 using IoT_System.Application.DTOs.Response.Auth;
 using IoT_System.Application.Interfaces.Repositories;
@@ -7,6 +8,7 @@ using IoT_System.Domain.Entities.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using static IoT_System.Application.Common.Helpers.ExecutionHelper;
 
 namespace IoT_System.Infrastructure.Services;
 
@@ -14,17 +16,23 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IGroupRepository _groupRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly JwtService _jwtService;
     private readonly IConfiguration _configuration;
 
     public AuthService(
         UserManager<User> userManager,
         IRefreshTokenRepository refreshTokenRepository,
+        IGroupRepository groupRepository,
+        IRoleRepository roleRepository,
         JwtService jwtService,
         IConfiguration configuration)
     {
         _userManager = userManager;
         _refreshTokenRepository = refreshTokenRepository;
+        _groupRepository = groupRepository;
+        _roleRepository = roleRepository;
         _jwtService = jwtService;
         _configuration = configuration;
     }
@@ -43,17 +51,24 @@ public class AuthService : IAuthService
             return OperationResult<(AuthResponse, string)>.Unauthorized("Invalid username or password");
         }
 
-        var roles = await GetUserRolesAsync(user);
-        var accessToken = _jwtService.GenerateAccessToken(user, roles);
-        var refreshToken = await GenerateAndSaveRefreshTokenAsync(user.Id);
+        var userRolesResult = await GetUserRolesAsync(user);
+        if (!userRolesResult.IsSuccess) return userRolesResult.ToOperationResult<(AuthResponse, string)>();
 
-        var response = new AuthResponse
+        var userGroupsResult = await GetUserGroupsAsync(user);
+        if (!userGroupsResult.IsSuccess) return userGroupsResult.ToOperationResult<(AuthResponse, string)>();
+
+        var accessToken = _jwtService.GenerateAccessToken(user, userRolesResult, userGroupsResult);
+
+        var refreshTokenResult = await GenerateAndSaveRefreshTokenAsync(user.Id);
+        if (!refreshTokenResult.IsSuccess) return refreshTokenResult.ToOperationResult<(AuthResponse, string)>();
+
+        var authResponse = new AuthResponse
         {
             AccessToken = accessToken,
             ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"]!))
         };
 
-        return OperationResult<(AuthResponse, string)>.Success((response, refreshToken));
+        return OperationResult<(AuthResponse, string)>.Success((authResponse, refreshTokenResult.Data!));
     }
 
     public async Task<OperationResult<(AuthResponse response, string refreshToken)>> RegisterAsync(RegisterRequest request)
@@ -64,6 +79,7 @@ public class AuthService : IAuthService
             return OperationResult<(AuthResponse, string)>.Conflict("User with this username already exists");
         }
 
+        var errors = new List<string>();
         var user = new User
         {
             UserName = request.UserName,
@@ -71,24 +87,39 @@ public class AuthService : IAuthService
             LastName = request.LastName
         };
 
-        var result = await _userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded)
+        var createUserResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createUserResult.Succeeded)
         {
-            var errors = result.Errors.Select(e => e.Description).ToList();
+            errors.AddRange(createUserResult.Errors.Select(e => e.Description));
             return OperationResult<(AuthResponse, string)>.BadRequest(errors);
         }
 
-        var roles = await GetUserRolesAsync(user);
-        var accessToken = _jwtService.GenerateAccessToken(user, roles);
-        var refreshToken = await GenerateAndSaveRefreshTokenAsync(user.Id);
+        var addToRoleResult = await _userManager.AddToRoleAsync(user, Constants.Roles.Viewer);
+        if (!addToRoleResult.Succeeded)
+        {
+            errors.AddRange(addToRoleResult.Errors.Select(e => e.Description));
+        }
 
-        var response = new AuthResponse
+        var userRolesResult = await GetUserRolesAsync(user);
+        if (!userRolesResult.IsSuccess) return userRolesResult.ToOperationResult<(AuthResponse, string)>();
+
+        var userGroupsResult = await GetUserGroupsAsync(user);
+        if (!userGroupsResult.IsSuccess) return userGroupsResult.ToOperationResult<(AuthResponse, string)>();
+
+        var accessToken = _jwtService.GenerateAccessToken(user, userRolesResult, userGroupsResult);
+
+        var refreshTokenResult = await GenerateAndSaveRefreshTokenAsync(user.Id);
+        if (!refreshTokenResult.IsSuccess) return refreshTokenResult.ToOperationResult<(AuthResponse, string)>();
+
+        var authResponse = new AuthResponse
         {
             AccessToken = accessToken,
             ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"]!))
         };
 
-        return OperationResult<(AuthResponse, string)>.Created((response, refreshToken));
+        var result = OperationResult<(AuthResponse, string)>.Created((authResponse, refreshTokenResult.Data!));
+        if (errors.Any()) result.Errors = errors;
+        return result;
     }
 
     public async Task<OperationResult<(AuthResponse response, string refreshToken)>> RefreshTokenAsync(string refreshToken)
@@ -100,10 +131,11 @@ public class AuthService : IAuthService
         }
 
         var token = tokenResult.Data;
-
         if (token.ExpiryDate < DateTime.UtcNow)
         {
-            await _refreshTokenRepository.DeleteAsync(token);
+            var deleteTokenResult = await _refreshTokenRepository.DeleteAsync(token);
+            if (!deleteTokenResult.IsSuccess) return deleteTokenResult.ToOperationResult<(AuthResponse, string)>();
+
             return OperationResult<(AuthResponse, string)>.Unauthorized("Refresh token has expired");
         }
 
@@ -115,47 +147,50 @@ public class AuthService : IAuthService
 
         await _refreshTokenRepository.DeleteAsync(token);
 
-        var roles = await GetUserRolesAsync(user);
-        var newAccessToken = _jwtService.GenerateAccessToken(user, roles);
-        var newRefreshToken = await GenerateAndSaveRefreshTokenAsync(user.Id);
+        var userRolesResult = await GetUserRolesAsync(user);
+        if (!userRolesResult.IsSuccess) return userRolesResult.ToOperationResult<(AuthResponse, string)>();
 
-        var response = new AuthResponse
+        var userGroupsResult = await GetUserGroupsAsync(user);
+        if (!userGroupsResult.IsSuccess) return userGroupsResult.ToOperationResult<(AuthResponse, string)>();
+
+        var newAccessToken = _jwtService.GenerateAccessToken(user, userRolesResult, userGroupsResult);
+
+        var newRefreshToken = await GenerateAndSaveRefreshTokenAsync(user.Id);
+        if (!newRefreshToken.IsSuccess) return newRefreshToken.ToOperationResult<(AuthResponse, string)>();
+
+        var authResponse = new AuthResponse
         {
             AccessToken = newAccessToken,
             ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"]!))
         };
 
-        return OperationResult<(AuthResponse, string)>.Success((response, newRefreshToken));
+        return OperationResult<(AuthResponse, string)>.Success((authResponse, newRefreshToken.Data!));
     }
 
     #region Private Methods
 
-    private async Task<List<string>> GetUserRolesAsync(User user)
+    private Task<OperationResult<List<Role>>> GetUserRolesAsync(User user)
     {
-        var userWithGroups = await _userManager.Users
-            .Include(u => u.UserGroups)
-            .ThenInclude(ug => ug.Group)
-            .ThenInclude(g => g.GroupRoles)
-            .ThenInclude(gr => gr.Role)
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(u => u.Id == user.Id);
-
-        if (userWithGroups == null)
-        {
-            return new List<string>();
-        }
-
-        var directRoles = await _userManager.GetRolesAsync(user);
-
-        var groupRoles = userWithGroups.UserGroups
-            .SelectMany(ug => ug.Group.GroupRoles)
-            .Select(gr => gr.Role.Name!)
-            .Distinct();
-
-        return directRoles.Union(groupRoles).ToList();
+        return ExecuteAsync(() =>
+            _roleRepository.AsQueryable()
+                .Where(r => r.UserRoles.Any(ur => ur.UserId == user.Id))
+                .ToListAsync()
+        );
     }
 
-    private async Task<string> GenerateAndSaveRefreshTokenAsync(Guid userId)
+    private Task<OperationResult<List<Group>>> GetUserGroupsAsync(User user)
+    {
+        return ExecuteAsync(() =>
+            _groupRepository.AsQueryable()
+                .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .AsSplitQuery()
+                .Where(g => g.UserGroups.Any(ug => ug.UserId == user.Id))
+                .ToListAsync()
+        );
+    }
+
+    private async Task<OperationResult<string>> GenerateAndSaveRefreshTokenAsync(Guid userId)
     {
         var refreshToken = new RefreshToken
         {
@@ -164,7 +199,9 @@ public class AuthService : IAuthService
             ExpiryDate = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"]!))
         };
 
-        await _refreshTokenRepository.AddAsync(refreshToken);
+        var result = await _refreshTokenRepository.AddAsync(refreshToken);
+        if (!result.IsSuccess) return result.ToOperationResult<string>();
+
         return refreshToken.Token;
     }
 

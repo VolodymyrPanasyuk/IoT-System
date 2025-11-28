@@ -1,7 +1,6 @@
 using AutoMapper;
 using IoT_System.Application.Common;
 using IoT_System.Application.DTOs.Request;
-using IoT_System.Application.DTOs.Response.Auth;
 using IoT_System.Application.DTOs.Response.Groups;
 using IoT_System.Application.DTOs.Response.Roles;
 using IoT_System.Application.DTOs.Response.Users;
@@ -16,7 +15,6 @@ public class AuthMappingProfile : Profile
         CreateUserMappings();
         CreateRoleMappings();
         CreateGroupMappings();
-        CreateAuthMappings();
     }
 
     private void CreateUserMappings()
@@ -44,6 +42,7 @@ public class AuthMappingProfile : Profile
         CreateMap<User, UserShortResponse>();
         CreateMap<CreateUserRequest, User>();
         CreateMap<UpdateUserRequest, User>();
+        CreateMap<UserResponse, UserShortResponse>().ReverseMap();
     }
 
     private void CreateRoleMappings()
@@ -74,6 +73,7 @@ public class AuthMappingProfile : Profile
 
         CreateMap<CreateRoleRequest, Role>();
         CreateMap<UpdateRoleRequest, Role>();
+        CreateMap<RoleResponse, RoleShortResponse>().ReverseMap();
     }
 
     private void CreateGroupMappings()
@@ -87,30 +87,7 @@ public class AuthMappingProfile : Profile
         CreateMap<Group, GroupShortResponse>();
         CreateMap<CreateGroupRequest, Group>();
         CreateMap<UpdateGroupRequest, Group>();
-    }
-
-    private void CreateAuthMappings()
-    {
-        CreateMap<User, UserSessionResponse>()
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Groups, opt => opt.MapFrom(src =>
-                src.UserGroups.Select(ug => ug.Group)))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
-                src.UserRoles
-                    .Select(ur => new RoleWithInheritance
-                    {
-                        Role = ur.Role,
-                        IsInherited = false
-                    })
-                    .Concat(src.UserGroups
-                        .SelectMany(ug => ug.Group.GroupRoles
-                            .Select(gr => new RoleWithInheritance
-                            {
-                                Role = gr.Role,
-                                IsInherited = true
-                            })))
-                    .GroupBy(x => x.Role.Id)
-                    .Select(g => g.First())));
+        CreateMap<GroupResponse, GroupShortResponse>().ReverseMap();
     }
 }
 
