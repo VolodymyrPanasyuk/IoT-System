@@ -14,10 +14,12 @@ namespace IoT_System.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IAccessValidationService _accessValidationService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IAccessValidationService accessValidationService)
     {
         _userService = userService;
+        _accessValidationService = accessValidationService;
     }
 
     [HttpGet]
@@ -44,6 +46,12 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserResponse>> Create([FromBody] CreateUserRequest request)
     {
+        if (request.RoleIds is { Count: > 0 })
+        {
+            var validationResult = await _accessValidationService.ValidateRolesAccessAsync(request.RoleIds);
+            if (!validationResult.IsSuccess) return validationResult.ToResult();
+        }
+
         var result = await _userService.CreateUserAsync(request);
         return result.ToResult();
     }
@@ -51,6 +59,9 @@ public class UsersController : ControllerBase
     [HttpPut]
     public async Task<ActionResult<UserResponse>> Update([FromBody] UpdateUserRequest request)
     {
+        var validationResult = await _accessValidationService.ValidateUserAccessAsync(request.Id);
+        if (!validationResult.IsSuccess) return validationResult.ToResult();
+
         var result = await _userService.UpdateUserAsync(request);
         return result.ToResult();
     }
@@ -58,6 +69,9 @@ public class UsersController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
+        var validationResult = await _accessValidationService.ValidateUserAccessAsync(id);
+        if (!validationResult.IsSuccess) return validationResult.ToResult();
+
         var result = await _userService.DeleteUserAsync(id);
         return result.ToResult();
     }

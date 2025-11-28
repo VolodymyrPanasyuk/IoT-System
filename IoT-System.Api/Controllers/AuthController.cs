@@ -26,11 +26,9 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
         var result = await _authService.LoginAsync(request);
-
         if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Data.refreshToken))
         {
             SetRefreshTokenCookie(result.Data.refreshToken);
-            return result.ToResult(data => data.response);
         }
 
         return result.ToResult(data => data.response);
@@ -40,11 +38,9 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
         var result = await _authService.RegisterAsync(request);
-
         if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Data.refreshToken))
         {
             SetRefreshTokenCookie(result.Data.refreshToken);
-            return result.ToResult(data => data.response);
         }
 
         return result.ToResult(data => data.response);
@@ -54,18 +50,15 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> RefreshToken()
     {
         var refreshToken = Request.Cookies["refreshToken"];
-
         if (string.IsNullOrEmpty(refreshToken))
         {
             return Unauthorized(new { message = "Refresh token not found" });
         }
 
         var result = await _authService.RefreshTokenAsync(refreshToken);
-
         if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Data.refreshToken))
         {
             SetRefreshTokenCookie(result.Data.refreshToken);
-            return result.ToResult(data => data.response);
         }
 
         return result.ToResult(data => data.response);

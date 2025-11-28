@@ -3,9 +3,8 @@ using IoT_System.Application.DTOs.Response.Roles;
 
 namespace IoT_System.Application.DTOs.Response.Users;
 
-public class UserResponse : BaseEntityResponse
+public class UserResponse : UserShortResponse
 {
-    public string UserName { get; set; } = null!;
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public List<RoleShortResponse> Roles { get; set; } = new();
