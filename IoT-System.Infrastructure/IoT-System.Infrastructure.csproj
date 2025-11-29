@@ -30,6 +30,7 @@
 
     <ItemGroup>
       <Folder Include="Migrations\Auth\" />
+      <Folder Include="Migrations\IoT\" />
     </ItemGroup>
 
 </Project>

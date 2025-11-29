@@ -25,8 +25,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 // ====== DATABASE ======
-builder.Services.AddDbContext<AuthDbContext>(options
-    => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AuthDbContext>(options => options.UseNpgsql(defaultConnectionString));
+builder.Services.AddDbContext<IoTDbContext>(options => options.UseNpgsql(defaultConnectionString));
 
 // ====== IDENTITY ======
 builder.Services.AddIdentityCore<User>(options =>
@@ -130,14 +131,10 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // ====== APPLY MIGRATIONS & SEED DATA ======
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-    dbContext.Database.Migrate();
+await DatabaseMigrationHelper.MigrateAllDatabasesAsync(app.Services);
 
-    // Seed initial data (roles and super admin user)
-    await DatabaseSeeder.SeedAsync(app.Services);
-}
+// Seed initial data (roles and super admin user)
+await DatabaseSeeder.SeedAsync(app.Services);
 
 // ====== MIDDLEWARE PIPELINE ======
 app.UseMiddleware<ExceptionHandlingMiddleware>();
