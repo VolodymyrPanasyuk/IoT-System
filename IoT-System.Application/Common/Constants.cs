@@ -69,4 +69,18 @@ public static class Constants
         public const string Warning = "Warning";
         public const string Critical = "Critical";
     }
+
+    public static class ApiRoutes
+    {
+        public const string Identity = "api/identity";
+        public const string System = "api/system";
+        public const string External = "api/external";
+    }
+
+    public static class SwaggerGroups
+    {
+        public const string Identity = "identity";
+        public const string System = "system";
+        public const string External = "external";
+    }
 }

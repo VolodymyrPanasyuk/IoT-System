@@ -1,4 +1,3 @@
-using IoT_System.Domain.Entities;
 using IoT_System.Domain.Entities.IoT;
 using Microsoft.EntityFrameworkCore;
 

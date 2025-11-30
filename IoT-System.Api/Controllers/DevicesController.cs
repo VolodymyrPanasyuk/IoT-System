@@ -1,3 +1,4 @@
+using IoT_System.Application.Common;
 using IoT_System.Application.Interfaces.Services.IoT;
 using IoT_System.Domain.Entities.IoT;
 using IoT_System.Domain.Entities.IoT.Enums;
@@ -9,7 +10,8 @@ namespace IoT_System.Api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiRoutes.System}/[controller]")]
+[ApiExplorerSettings(GroupName = Constants.SwaggerGroups.System)]
 [Produces("application/json")]
 public class DevicesController : ControllerBase
 {

@@ -9,7 +9,8 @@ namespace IoT_System.Api.Controllers;
 
 [AllowAnonymous]
 [ApiController]
-[Route("api/[controller]")]
+[Route(Constants.ApiRoutes.External)]
+[ApiExplorerSettings(GroupName = Constants.SwaggerGroups.External)]
 [Produces("application/json")]
 public class ExternalController : ControllerBase
 {

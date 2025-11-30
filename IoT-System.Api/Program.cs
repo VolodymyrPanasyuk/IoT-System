@@ -1,5 +1,6 @@
 using System.Text;
 using DotNetEnv;
+using IoT_System.Application.Common;
 using IoT_System.Application.Interfaces.Repositories.Auth;
 using IoT_System.Application.Interfaces.Repositories.IoT;
 using IoT_System.Application.Interfaces.Services.Auth;
@@ -154,14 +155,28 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
 {
-    // API Information
-    options.SwaggerDoc("v1", new OpenApiInfo
+    // ====== IoT Identity API ======
+    options.SwaggerDoc(Constants.SwaggerGroups.Identity, new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "IoT Identity API"
+    });
+
+    // ====== IoT System API ======
+    options.SwaggerDoc(Constants.SwaggerGroups.System, new OpenApiInfo
     {
         Version = "v1",
         Title = "IoT System API"
     });
 
-    // JWT Bearer Authentication
+    // ====== IoT External API ======
+    options.SwaggerDoc(Constants.SwaggerGroups.External, new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "IoT External API"
+    });
+
+    // ====== JWT Bearer Authentication (for Identity and System APIs) ======
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -169,7 +184,16 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme."
+        Description = "JWT Authorization header using the Bearer scheme. Used for Identity and System APIs."
+    });
+
+    // ====== API Key Authentication (for External API) ======
+    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Name = Constants.ApiHeaders.ApiKey,
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Description = "API Key for IoT device authentication. Used for External API."
     });
 
     // Apply conditional authorization filter
@@ -180,25 +204,29 @@ var app = builder.Build();
 
 // ====== APPLY MIGRATIONS & SEED DATA ======
 await DatabaseMigrationHelper.MigrateAllDatabasesAsync(app.Services);
-
-// Seed initial data (roles and super admin user)
 await DatabaseSeeder.SeedAsync(app.Services);
 
 // ====== MIDDLEWARE PIPELINE ======
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Health check endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
-    .AllowAnonymous();
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow })).AllowAnonymous();
 
+// ====== SWAGGER UI ======
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "IoT System API v1");
-    options.DocumentTitle = "IoT System API - Swagger UI";
+    // IoT Identity API
+    options.SwaggerEndpoint($"/swagger/{Constants.SwaggerGroups.Identity}/swagger.json", "IoT Identity API v1");
+
+    // IoT System API
+    options.SwaggerEndpoint($"/swagger/{Constants.SwaggerGroups.System}/swagger.json", "IoT System API v1");
+
+    // IoT External API
+    options.SwaggerEndpoint($"/swagger/{Constants.SwaggerGroups.External}/swagger.json", "IoT External API v1");
+
+    options.DocumentTitle = "IoT System APIs - Swagger UI";
     options.RoutePrefix = "swagger";
 
-    // UI customization
     options.DefaultModelsExpandDepth(10);
     options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
     options.DisplayRequestDuration();
