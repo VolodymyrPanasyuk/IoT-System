@@ -7,7 +7,7 @@ namespace IoT_System.Application.Interfaces.Repositories.IoT;
 
 public interface IDeviceAccessPermissionRepository : IRepositoryBase<DeviceAccessPermission>
 {
-    Task<OperationResult<bool>> HasAccessAsync(
+    Task<OperationResult> HasAccessAsync(
         Guid deviceId,
         Guid? userId = null,
         List<Guid>? roleIds = null,

@@ -87,12 +87,12 @@ public class DeviceAccessPermissionService : IDeviceAccessPermissionService
         return _permissionRepository.GetByDeviceIdAsync(deviceId);
     }
 
-    public async Task<OperationResult<bool>> ValidateAccessAsync(Guid deviceId, DevicePermissionType requiredPermission = DevicePermissionType.View)
+    public Task<OperationResult> ValidateAccessAsync(Guid deviceId, DevicePermissionType requiredPermission = DevicePermissionType.View)
     {
         var userId = _accessValidationService.GetCurrentUserId();
         var roleIds = _accessValidationService.GetCurrentUserRolesIds();
         var groupIds = _accessValidationService.GetCurrentUserGroupsIds();
 
-        return await _permissionRepository.HasAccessAsync(deviceId, userId, roleIds, groupIds, requiredPermission);
+        return _permissionRepository.HasAccessAsync(deviceId, userId, roleIds, groupIds, requiredPermission);
     }
 }

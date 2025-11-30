@@ -12,5 +12,5 @@ public interface IDeviceService
     Task<OperationResult<IEnumerable<Device>>> GetAllAsync(bool includeRelations = false, bool activeOnly = false);
     Task<OperationResult<Device>> GetByApiKeyAsync(string apiKey);
     OperationResult<string> GenerateApiKey();
-    Task<OperationResult<bool>> ValidateApiKeyAsync(string apiKey, Guid deviceId);
+    Task<OperationResult> ValidateApiKeyAsync(string apiKey, Guid deviceId);
 }

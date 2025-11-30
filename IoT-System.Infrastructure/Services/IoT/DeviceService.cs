@@ -141,31 +141,31 @@ public class DeviceService : IDeviceService
         });
     }
 
-    public async Task<OperationResult<bool>> ValidateApiKeyAsync(string apiKey, Guid deviceId)
+    public async Task<OperationResult> ValidateApiKeyAsync(string apiKey, Guid deviceId)
     {
         var deviceResult = await _deviceRepository.GetByApiKeyAsync(apiKey);
         if (!deviceResult.IsSuccess || deviceResult.Data == null)
         {
-            return OperationResult<bool>.Unauthorized("Invalid API Key");
+            return OperationResult.Unauthorized("Invalid API Key");
         }
 
         var device = deviceResult.Data;
 
         if (device.Id != deviceId)
         {
-            return OperationResult<bool>.Forbidden("API Key does not match device");
+            return OperationResult.Forbidden("API Key does not match device");
         }
 
         if (!device.IsActive)
         {
-            return OperationResult<bool>.Forbidden("Device is not active");
+            return OperationResult.Forbidden("Device is not active");
         }
 
         if (device.ApiKeyExpiresAt.HasValue && device.ApiKeyExpiresAt.Value < DateTime.UtcNow)
         {
-            return OperationResult<bool>.Unauthorized("API Key has expired");
+            return OperationResult.Unauthorized("API Key has expired");
         }
 
-        return OperationResult<bool>.Success(true);
+        return OperationResult.Success();
     }
 }

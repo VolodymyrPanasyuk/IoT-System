@@ -11,5 +11,5 @@ public interface IDeviceAccessPermissionService
     Task<OperationResult> DeleteAsync(Guid id);
     Task<OperationResult<DeviceAccessPermission>> GetByIdAsync(Guid id);
     Task<OperationResult<List<DeviceAccessPermission>>> GetByDeviceIdAsync(Guid deviceId);
-    Task<OperationResult<bool>> ValidateAccessAsync(Guid deviceId, DevicePermissionType requiredPermission = DevicePermissionType.View);
+    Task<OperationResult> ValidateAccessAsync(Guid deviceId, DevicePermissionType requiredPermission = DevicePermissionType.View);
 }

@@ -11,14 +11,14 @@ namespace IoT_System.Infrastructure.Services.IoT;
 public class ThresholdService : IThresholdService
 {
     private readonly IDeviceFieldRepository _fieldRepository;
-    private readonly IFieldMeasurementValueRepository _valueRepository;
+    private readonly ThresholdTrackingService _trackingService;
 
     public ThresholdService(
         IDeviceFieldRepository fieldRepository,
-        IFieldMeasurementValueRepository valueRepository)
+        ThresholdTrackingService trackingService)
     {
         _fieldRepository = fieldRepository;
-        _valueRepository = valueRepository;
+        _trackingService = trackingService;
     }
 
     public async Task<OperationResult<List<ThresholdStatus>>> CheckThresholdsAsync(DeviceMeasurement measurement)
@@ -55,32 +55,41 @@ public class ThresholdService : IThresholdService
 
                 var status = GetThresholdStatus(field, numericValue);
 
+                // Check if we should notify based on state tracking
                 if (status != Constants.Thresholds.Normal)
                 {
-                    decimal? thresholdValue = null;
+                    if (_trackingService.ShouldNotify(measurement.DeviceId, field.Id, status))
+                    {
+                        decimal? thresholdValue = null;
 
-                    if (status == Constants.Thresholds.Critical)
-                    {
-                        thresholdValue = numericValue < 0 && field.CriticalMin.HasValue
-                            ? field.CriticalMin
-                            : field.CriticalMax;
-                    }
-                    else if (status == Constants.Thresholds.Warning)
-                    {
-                        thresholdValue = numericValue < 0 && field.WarningMin.HasValue
-                            ? field.WarningMin
-                            : field.WarningMax;
-                    }
+                        if (status == Constants.Thresholds.Critical)
+                        {
+                            thresholdValue = numericValue < 0 && field.CriticalMin.HasValue
+                                ? field.CriticalMin
+                                : field.CriticalMax;
+                        }
+                        else if (status == Constants.Thresholds.Warning)
+                        {
+                            thresholdValue = numericValue < 0 && field.WarningMin.HasValue
+                                ? field.WarningMin
+                                : field.WarningMax;
+                        }
 
-                    exceededThresholds.Add(new ThresholdStatus
-                    {
-                        FieldId = field.Id,
-                        FieldName = field.DisplayName,
-                        Status = status,
-                        Value = numericValue,
-                        ThresholdValue = thresholdValue,
-                        Unit = field.Unit
-                    });
+                        exceededThresholds.Add(new ThresholdStatus
+                        {
+                            FieldId = field.Id,
+                            FieldName = field.DisplayName,
+                            Status = status,
+                            Value = numericValue,
+                            ThresholdValue = thresholdValue,
+                            Unit = field.Unit
+                        });
+                    }
+                }
+                else
+                {
+                    // Reset tracking when value returns to normal
+                    _trackingService.ResetField(measurement.DeviceId, field.Id);
                 }
             }
 
