@@ -1,6 +1,7 @@
+using IoT_System.Application.Common;
 using IoT_System.Application.DTOs.Request;
 using IoT_System.Application.DTOs.Response.Groups;
-using IoT_System.Application.Interfaces.Services;
+using IoT_System.Application.Interfaces.Services.Auth;
 using IoT_System.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,8 @@ namespace IoT_System.Api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiRoutes.Identity}/[controller]")]
+[ApiExplorerSettings(GroupName = Constants.SwaggerGroups.Identity)]
 [Produces("application/json")]
 public class GroupsController : ControllerBase
 {

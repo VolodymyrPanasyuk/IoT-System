@@ -1,18 +1,15 @@
+using IoT_System.Application.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace IoT_System.Infrastructure.Swagger;
 
-/// <summary>
-/// Swagger operation filter that adds security requirements only to endpoints with [Authorize] attribute.
-/// Respects attribute inheritance and method-level overrides.
-/// </summary>
 public class SwaggerAuthorizeOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        // Check method-level attributes first (they have priority)
+        // Check method-level attributes first
         var methodAllowAnonymous = context.MethodInfo.GetCustomAttributes(true)
             .OfType<AllowAnonymousAttribute>().Any();
 
@@ -25,10 +22,10 @@ public class SwaggerAuthorizeOperationFilter : IOperationFilter
             return;
         }
 
-        // If method has explicit [Authorize], add security
+        // If method has explicit [Authorize], add JWT security
         if (methodAuthorize)
         {
-            AddSecurityRequirement(operation);
+            AddJwtSecurityRequirement(operation);
             return;
         }
 
@@ -42,24 +39,34 @@ public class SwaggerAuthorizeOperationFilter : IOperationFilter
         // Controller has [AllowAnonymous] and method doesn't override it
         if (controllerAllowAnonymous)
         {
+            // Check if this is External API (needs ApiKey documentation)
+            var apiExplorerSettings = context.MethodInfo.DeclaringType?.GetCustomAttributes(true)
+                .OfType<Microsoft.AspNetCore.Mvc.ApiExplorerSettingsAttribute>()
+                .FirstOrDefault();
+
+            if (apiExplorerSettings?.GroupName == Constants.SwaggerGroups.External)
+            {
+                AddApiKeySecurityRequirement(operation);
+            }
+
             return;
         }
 
         // Controller has [Authorize] and method doesn't override it
         if (controllerAuthorize)
         {
-            AddSecurityRequirement(operation);
+            AddJwtSecurityRequirement(operation);
         }
     }
 
-    private void AddSecurityRequirement(OpenApiOperation operation)
+    private void AddJwtSecurityRequirement(OpenApiOperation operation)
     {
         // Add 401 and 403 responses
         if (!operation.Responses.ContainsKey("401"))
         {
             operation.Responses.Add("401", new OpenApiResponse
             {
-                Description = "Unauthorized - Authentication token is missing or invalid"
+                Description = "Unauthorized - JWT token is missing or invalid"
             });
         }
 
@@ -86,6 +93,36 @@ public class SwaggerAuthorizeOperationFilter : IOperationFilter
             new OpenApiSecurityRequirement
             {
                 [bearerScheme] = new List<string>()
+            }
+        };
+    }
+
+    private void AddApiKeySecurityRequirement(OpenApiOperation operation)
+    {
+        // Add 401 response
+        if (!operation.Responses.ContainsKey("401"))
+        {
+            operation.Responses.Add("401", new OpenApiResponse
+            {
+                Description = "Unauthorized - API Key is missing or invalid"
+            });
+        }
+
+        // Add security requirement for API Key
+        var apiKeyScheme = new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "ApiKey"
+            }
+        };
+
+        operation.Security = new List<OpenApiSecurityRequirement>
+        {
+            new OpenApiSecurityRequirement
+            {
+                [apiKeyScheme] = new List<string>()
             }
         };
     }

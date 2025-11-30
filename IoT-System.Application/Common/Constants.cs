@@ -39,4 +39,48 @@ public static class Constants
         public const string GroupId = "group_id";
         public const string GroupName = "group_name";
     }
+
+    public static class ApiHeaders
+    {
+        public const string ApiKey = "X-API-Key";
+    }
+
+    public static class SignalR
+    {
+        public static class HubMethods
+        {
+            public const string MeasurementAdded = "MeasurementAdded";
+            public const string MeasurementUpdated = "MeasurementUpdated";
+            public const string MeasurementDeleted = "MeasurementDeleted";
+            public const string ThresholdExceeded = "ThresholdExceeded";
+            public const string DeviceStatusChanged = "DeviceStatusChanged";
+        }
+
+        public static class Groups
+        {
+            public static string DeviceGroup(Guid deviceId) => $"Device_{deviceId}";
+            public static string AllDevices => "AllDevices";
+        }
+    }
+
+    public static class Thresholds
+    {
+        public const string Normal = "Normal";
+        public const string Warning = "Warning";
+        public const string Critical = "Critical";
+    }
+
+    public static class ApiRoutes
+    {
+        public const string Identity = "api/identity";
+        public const string System = "api/system";
+        public const string External = "api/external";
+    }
+
+    public static class SwaggerGroups
+    {
+        public const string Identity = "identity";
+        public const string System = "system";
+        public const string External = "external";
+    }
 }
