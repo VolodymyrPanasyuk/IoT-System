@@ -1,6 +1,7 @@
 using IoT_System.Application.DTOs.Request;
 using IoT_System.Application.DTOs.Response.Users;
 using IoT_System.Application.Interfaces.Services;
+using IoT_System.Application.Interfaces.Services.Auth;
 using IoT_System.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

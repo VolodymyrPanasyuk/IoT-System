@@ -1,4 +1,5 @@
 using IoT_System.Domain.Entities;
+using IoT_System.Domain.Entities.IoT;
 using Microsoft.EntityFrameworkCore;
 
 namespace IoT_System.Infrastructure.Contexts;
