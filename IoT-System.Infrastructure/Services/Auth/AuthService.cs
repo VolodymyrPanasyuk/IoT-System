@@ -5,6 +5,7 @@ using IoT_System.Application.Interfaces.Repositories.Auth;
 using IoT_System.Application.Interfaces.Services.Auth;
 using IoT_System.Application.Models;
 using IoT_System.Domain.Entities.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ public class AuthService : IAuthService
     private readonly IRoleRepository _roleRepository;
     private readonly JwtService _jwtService;
     private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthService(
         UserManager<User> userManager,
@@ -27,7 +29,8 @@ public class AuthService : IAuthService
         IGroupRepository groupRepository,
         IRoleRepository roleRepository,
         JwtService jwtService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _refreshTokenRepository = refreshTokenRepository;
@@ -35,6 +38,7 @@ public class AuthService : IAuthService
         _roleRepository = roleRepository;
         _jwtService = jwtService;
         _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<OperationResult<(AuthResponse response, string refreshToken)>> LoginAsync(LoginRequest request)
@@ -202,6 +206,13 @@ public class AuthService : IAuthService
         var result = await _refreshTokenRepository.AddAsync(refreshToken);
         if (!result.IsSuccess) return result.ToOperationResult<string>();
 
+        var currentToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
+        if (!string.IsNullOrWhiteSpace(currentToken))
+        {
+            await _refreshTokenRepository.DeleteByTokenAsync(currentToken);
+        }
+
+        await _refreshTokenRepository.DeleteAllExpiredByUserIdAsync(userId);
         return refreshToken.Token;
     }
 

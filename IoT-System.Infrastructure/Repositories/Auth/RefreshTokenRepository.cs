@@ -14,12 +14,40 @@ public class RefreshTokenRepository(AuthDbContext context) : RepositoryBase<Refr
         return ExecuteAsync(() => _dbSet.FirstOrDefaultAsync(rt => rt.Token == token));
     }
 
-    public Task<OperationResult> DeleteByUserIdAsync(Guid userId)
+    public Task<OperationResult> DeleteAllByUserIdAsync(Guid userId)
     {
         return ExecuteAsync(async () =>
         {
-            var tokens = _dbSet.Where(rt => rt.UserId == userId);
-            _dbSet.RemoveRange(tokens);
+            var refreshTokens = await _dbSet
+                .Where(rt => rt.UserId == userId)
+                .ToListAsync();
+
+            _dbSet.RemoveRange(refreshTokens);
+            await _context.SaveChangesAsync();
+        });
+    }
+
+    public Task<OperationResult> DeleteAllExpiredByUserIdAsync(Guid userId)
+    {
+        return ExecuteAsync(async () =>
+        {
+            var refreshTokens = await _dbSet
+                .Where(rt => rt.UserId == userId && rt.ExpiryDate < DateTime.UtcNow)
+                .ToListAsync();
+
+            _dbSet.RemoveRange(refreshTokens);
+            await _context.SaveChangesAsync();
+        });
+    }
+
+    public Task<OperationResult> DeleteByTokenAsync(string token)
+    {
+        return ExecuteAsync(async () =>
+        {
+            var refreshToken = await _dbSet.FirstOrDefaultAsync(rt => rt.Token == token);
+            if (refreshToken == null) return;
+
+            _dbSet.Remove(refreshToken);
             await _context.SaveChangesAsync();
         });
     }

@@ -6,5 +6,7 @@ namespace IoT_System.Application.Interfaces.Repositories.Auth;
 public interface IRefreshTokenRepository : IRepositoryBase<RefreshToken>
 {
     Task<OperationResult<RefreshToken?>> GetByTokenAsync(string token);
-    Task<OperationResult> DeleteByUserIdAsync(Guid userId);
+    Task<OperationResult> DeleteAllByUserIdAsync(Guid userId);
+    Task<OperationResult> DeleteAllExpiredByUserIdAsync(Guid userId);
+    Task<OperationResult> DeleteByTokenAsync(string token);
 }
