@@ -91,6 +91,15 @@ builder.Services.AddScoped<IIoTHubService, IoTHubService>();
 // ====== SINGLETONS ======
 builder.Services.AddSingleton<ThresholdTrackingService>();
 
+// ====== HTTP CLIENT ======
+builder.Services.AddHttpClient("HealthCheck", client => { client.Timeout = TimeSpan.FromSeconds(30); });
+
+// ====== BACKGROUND SERVICES ======
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHostedService<HealthCheckBackgroundService>();
+}
+
 // ====== JWT AUTHENTICATION ======
 builder.Services.AddAuthentication(options =>
     {

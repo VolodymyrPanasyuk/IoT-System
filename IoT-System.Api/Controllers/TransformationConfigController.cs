@@ -14,6 +14,7 @@ namespace IoT_System.Api.Controllers;
 public class TransformationConfigController : ControllerBase
 {
     [HttpGet]
+    [AllowAnonymous]
     public ActionResult<List<TransformationConfigModel>> GetAllTransformationConfigs()
     {
         var configs = TransformationConfigHelper.GetAllTransformationConfigs();

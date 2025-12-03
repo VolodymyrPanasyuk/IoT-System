@@ -27,6 +27,7 @@ public class DeviceFieldsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<DeviceField>>> GetAll()
     {
         var result = await _fieldService.GetAllAsync();
@@ -34,6 +35,7 @@ public class DeviceFieldsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<DeviceField>> GetById(Guid id)
     {
         var result = await _fieldService.GetByIdAsync(id);
@@ -41,6 +43,7 @@ public class DeviceFieldsController : ControllerBase
     }
 
     [HttpGet("device/{deviceId:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<DeviceField>>> GetByDeviceId(Guid deviceId, [FromQuery] bool activeOnly = true)
     {
         var accessResult = await _permissionService.ValidateAccessAsync(deviceId);

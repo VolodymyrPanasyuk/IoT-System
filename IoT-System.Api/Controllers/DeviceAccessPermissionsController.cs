@@ -23,6 +23,7 @@ public class DeviceAccessPermissionsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<DeviceAccessPermission>> GetById(Guid id)
     {
         var result = await _permissionService.GetByIdAsync(id);
@@ -30,6 +31,7 @@ public class DeviceAccessPermissionsController : ControllerBase
     }
 
     [HttpGet("device/{deviceId:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<DeviceAccessPermission>>> GetByDeviceId(Guid deviceId)
     {
         var accessResult = await _permissionService.ValidateAccessAsync(deviceId, DevicePermissionType.Configure);

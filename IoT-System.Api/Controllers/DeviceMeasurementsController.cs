@@ -27,6 +27,7 @@ public class DeviceMeasurementsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<DeviceMeasurement>> GetById(Guid id)
     {
         var result = await _measurementService.GetByIdAsync(id);
@@ -34,6 +35,7 @@ public class DeviceMeasurementsController : ControllerBase
     }
 
     [HttpGet("device/{deviceId:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<DeviceMeasurement>>> GetByDeviceId(
         Guid deviceId,
         [FromQuery] DateTime? startDate = null,
@@ -51,6 +53,7 @@ public class DeviceMeasurementsController : ControllerBase
     }
 
     [HttpGet("device/{deviceId:guid}/latest")]
+    [AllowAnonymous]
     public async Task<ActionResult<DeviceMeasurement>> GetLatestByDeviceId(Guid deviceId)
     {
         var accessResult = await _permissionService.ValidateAccessAsync(deviceId);

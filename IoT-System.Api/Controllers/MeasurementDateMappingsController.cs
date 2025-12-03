@@ -27,6 +27,7 @@ public class MeasurementDateMappingsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<MeasurementDateMapping>> GetById(Guid id)
     {
         var result = await _mappingService.GetByIdAsync(id);
@@ -34,6 +35,7 @@ public class MeasurementDateMappingsController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<ActionResult<MeasurementDateMapping>> Create([FromBody] MeasurementDateMapping mapping)
     {
         var accessResult = await _permissionService.ValidateAccessAsync(mapping.DeviceId, DevicePermissionType.Configure);

@@ -30,6 +30,7 @@ public class FieldMappingsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<FieldMapping>> GetById(Guid id)
     {
         var result = await _mappingService.GetByIdAsync(id);
@@ -37,6 +38,7 @@ public class FieldMappingsController : ControllerBase
     }
 
     [HttpGet("field/{fieldId:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<FieldMapping>>> GetByFieldId(Guid fieldId)
     {
         var result = await _mappingService.GetByFieldIdAsync(fieldId);

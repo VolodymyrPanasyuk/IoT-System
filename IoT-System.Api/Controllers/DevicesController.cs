@@ -30,6 +30,7 @@ public class DevicesController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<Device>>> GetAll([FromQuery] bool includeRelations = false, [FromQuery] bool activeOnly = false)
     {
         var result = await _deviceService.GetAllAsync(includeRelations, activeOnly);
@@ -37,6 +38,7 @@ public class DevicesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<Device>> GetById(Guid id, [FromQuery] bool includeRelations = false)
     {
         var accessResult = await _permissionService.ValidateAccessAsync(id);
